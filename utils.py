@@ -78,16 +78,11 @@ class Hashes:
         combined = self.__blobs | self.__files
 
         if len(combined) != len(self.__loaded):
-            status.write(
-                f'Mismatch size: {len(combined)} vs {len(self.__loaded)}')
             return True
         for new in combined:
             if new not in self.__loaded:
-                status.write(f'New: {new} - not present previously')
                 return True
             if combined[new].hash() != self.__loaded[new]:
-                status.write(
-                    f'Mismatch: {new} - old:{self.__loaded[new]} vs new:{combined[new].hash()}')
                 return True
         return False
 
