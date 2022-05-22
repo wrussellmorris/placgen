@@ -156,7 +156,7 @@ class GCloud:
                         raise Exception(
                             f'Duplicate remote file {folder.name} / {remote.name}')
                     names.add(remote.name)
-                    status.write(remote.name + f' remote:{remote.hash}')
+                    status.write(remote.name)
                     folder.set_file_hash(remote.name, remote.hash)
                 page += 1
                 if nextPageToken is None:
