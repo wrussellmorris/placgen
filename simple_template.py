@@ -79,7 +79,6 @@ def TransformSvg(template_svg_path: str, placard_svg_path: str, brewer: str, bee
     abvLine = root.find(".//*[@id='abvLine']")
     abvLineStyle = StyleToDict(abvLine.get('style'))
     abvLineInstr = PathDToList(abvLine.get('d'))
-    
 
     if abv > 9:
         # Change line ending if this is a boozy beer
@@ -88,10 +87,9 @@ def TransformSvg(template_svg_path: str, placard_svg_path: str, brewer: str, bee
         # Change ABV text color
         txtAbv = root.find(".//*[@id='txtAbv']")
         txtAbvStyle = StyleToDict(txtAbv.get('style'))
-        txtAbvStyle['fill'] = 'ff0030ff'
-        txtAbvBlur = root.find(".//*[@id='txtAbvBlur']")
-        txtAbvBlurStyle = StyleToDict(txtAbvBlur.get('style'))
-        txtAbvBlurStyle['fill'] = 'ff0030ff'
+        txtAbvStyle['fill'] = '#ff0030'
+        txtAbvStyle['stroke'] = '#e0e0e0'
+        txtAbv.set('style', DictToStyle(txtAbvStyle))
 
     # Size the ABV line so that it represents the ABV of
     # this beer.
