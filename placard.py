@@ -71,16 +71,31 @@ def main():
         simple_template.process(
             args.force, placard_dir, svg_path, hashes, brewer, beer, style, abv_str, logo_url)
 
-        # Generate PDF and PNG too
-        if os.system(f"inkscape {svg_path} --export-type=PDF,PNG > /dev/null 2>&1") != 0:
-            raise Exception(f"Failed to convert {svg_path} to PDF and PNG")
+        redirect = '' if args.debug else ' > /dev/null 2>&1'
+        if os.system(f"google-chrome --headless --window-size=278x278 --screenshot --hide-scrollbars {svg_path} {redirect}") != 0:
+            raise Exception(f"Failed to convert {svg_path} to PNG")
+
+        if os.system(f"google-chrome --headless --print-to-pdf --print-to-pdf-no-header {svg_path} {redirect}") != 0:
+            raise Exception(f"Failed to convert {svg_path} to PDF")
+
+        # Chrome dumps 'output.pdf' and 'screenshot.png' in curdir
+        if os.system(f'mv output.pdf {pdf_path} {redirect}') != 0:
+            raise Exception(f'Failed to mv ./output.pdf to {placard_dir}')
+        if os.system(f'mv screenshot.png {png_path} {redirect}') != 0:
+            raise Exception(f'Failed to mv ./screenshot.png to {placard_dir}')
+
+        # Crop the PDF, as chrome saves with a bunch of extra whitespace.
+        if os.system(f"pdfcrop {pdf_path} {pdf_path} {redirect}") != 0:
+            raise Exception(
+                f"Failed to crop {pdf_path}.  Do you have pdfcrop installed?")
 
         # Make the PDF hash stable by getting rid of metadata and dynamic ids
         pdf_path_cleansed = f'{pdf_path}.cleansed'
         if os.system(f'qpdf --static-id --pages {pdf_path} 1-z -- --empty {pdf_path_cleansed} ' +
-                     f'&& qpdf --static-id {pdf_path_cleansed} {pdf_path}') != 0:
+                     f'&& qpdf --static-id {pdf_path_cleansed} {pdf_path} {redirect}') != 0:
             raise Exception(
                 f'Failed to make pdf idempotent.  Do you have qpdf installed?')
+        os.remove(pdf_path_cleansed)
 
         if args.upload:
             status.push("Uploading")
