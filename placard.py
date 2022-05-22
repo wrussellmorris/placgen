@@ -8,7 +8,7 @@ import simple_template
 import re
 from utils import Hashes, status
 
-data_spreadsheet_id = '1MPFTyFbiA0WhWhdh9d7z2oadKowxOZq0BHYulGONE1Y'
+data_spreadsheet_id = '1jbha_NezYs8OnoTb29U4vIjH7LUzEJQauYeaf-Te930'
 data_spreadsheet_range = 'Placards!A2:E'
 drive_shared_drive_id = '0ALUzUy2w2YeeUk9PVA'
 drive_root_folder_id = '1syThtSUpFmP6vQ_erMh3BDGztN4qPEhD'
