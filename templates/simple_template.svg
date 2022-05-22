@@ -125,6 +125,19 @@
          inkscape:transform-center-y="-0.011137567"
          transform="matrix(1.3485138,0,0,1.3485138,-52.468176,-33.713729)" />
     </marker>
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter904"
+       x="-0.10132805"
+       y="-0.18930144"
+       width="1.2026561"
+       height="1.3786029">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="3.7011507"
+         id="feGaussianBlur906" />
+    </filter>
   </defs>
   <g
      inkscape:label="Layer 1"
@@ -205,7 +218,17 @@
          y="307.68546">%</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans, Ultra-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#333333;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none"
+       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans, Ultra-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ff0030;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter904)"
+       x="110.61133"
+       y="277.13196"
+       id="txtAbvBlur"><tspan
+         sodipodi:role="line"
+         id="tspan900"
+         x="110.61133"
+         y="277.13196">6.7</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans, Ultra-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ff0030;fill-opacity:1;stroke:#e0e0e0;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        x="110.61133"
        y="277.13196"
        id="txtAbv"><tspan
