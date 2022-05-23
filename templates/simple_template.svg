@@ -36,7 +36,9 @@
      inkscape:current-layer="layer1" />
   <defs
      id="defs2">
-   <style type="text/css">
+    <style
+       type="text/css"
+       id="styleFonts">
    @import url('https://fonts.googleapis.com/css2?family=Koulen&amp;family=Roboto+Condensed:wght@400;700&amp;family=Roboto:wght@400;500;700;900&amp;display=swap');
    </style>
     <pattern
@@ -124,7 +126,7 @@
          y="65.382004">Beer Name</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3333px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#073763;fill-opacity:1;stroke:none"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3333px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#073763;fill-opacity:1;stroke:none"
        x="9.3073807"
        y="92.745285"
        id="txtStyle"><tspan
@@ -143,7 +145,7 @@
        inkscape:svg-dpi="1" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:133.333px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#e9e9e9;fill-opacity:0.896285;stroke:#e0e0e0;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:900;font-stretch:normal;font-size:133.333px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#e9e9e9;fill-opacity:0.896285;stroke:#e0e0e0;stroke-opacity:1"
        x="14.040192"
        y="259.60211"
        id="text20732"
@@ -154,7 +156,7 @@
          y="259.60211">%</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ff0030;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter904)"
+       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#ff0030;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;filter:url(#filter904)"
        x="66.611328"
        y="229.04861"
        id="txtAbvBlur"><tspan
@@ -164,7 +166,7 @@
          y="229.04861">6.7</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#333333;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:63.7553px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#333333;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        x="66.611328"
        y="229.04861"
        id="txtAbv"><tspan
@@ -230,13 +232,13 @@
        y="105.45023"
        inkscape:svg-dpi="1" />
     <path
-       style="fill:none;stroke:#ff0000;stroke-width:2.88000001;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:;paint-order:normal"
+       style="fill:none;stroke:#ff0000;stroke-width:2.88;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
        d="M 6.6081072,159.024 H 103.66685"
        id="abvLine"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        x="14.807083"
        y="147.31357"
        id="txtNormal"><tspan
@@ -246,7 +248,7 @@
          y="147.31357">5%</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        x="46.243698"
        y="147.31357"
        id="txtStrong"><tspan
@@ -256,7 +258,7 @@
          y="147.31357">8%</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:'Roboto';;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:Roboto;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        x="83.713341"
        y="147.31357"
        id="txtBoozy"><tspan
