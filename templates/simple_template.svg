@@ -36,8 +36,9 @@
      inkscape:current-layer="layer1" />
   <defs
      id="defs2">
-     <style>
-@import url('https://fonts.googleapis.com/css2?family=Koulen&amp;family=Roboto+Condensed:wght@400;700&amp;family=Roboto:wght@400;500;700;900&amp;display=swap');</style>
+   <style type="text/css">
+   @import url('https://fonts.googleapis.com/css2?family=Koulen&amp;family=Roboto+Condensed:wght@400;700&amp;family=Roboto:wght@400;500;700;900&amp;display=swap');
+   </style>
     <pattern
        inkscape:collect="always"
        xlink:href="#Strips1_1"
@@ -60,73 +61,6 @@
          height="2"
          id="rect166190" />
     </pattern>
-    <marker
-       style="overflow:visible"
-       id="DotL"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="DotL"
-       inkscape:isstock="true">
-      <path
-         transform="matrix(0.8,0,0,0.8,5.92,0.8)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
-         id="path1402" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="StopL"
-       refX="0"
-       refY="0"
-       orient="auto"
-       inkscape:stockid="StopL"
-       inkscape:isstock="true">
-      <path
-         transform="scale(0.8)"
-         style="fill:none;fill-opacity:0.75;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 0,5.65 V -5.65"
-         id="path2512" />
-    </marker>
-    <marker
-       markerWidth="4.2730718"
-       markerHeight="7.90312"
-       refX="0"
-       refY="3.95156"
-       orient="auto"
-       id="asdf">
-      <path
-         style="fill:context-stroke;fill-opacity:1;stroke:context-stroke;stroke-width:0.1pt"
-         d="M 0,3.7924625 2.6250634,0.06704236 0.80394334,3.4456625 l 1.86312006,-1.51994 -1.34343,1.9230101 2.9214501,0.10761 -3.2044602,0.94834 2.8760602,0.2816 -1.7207601,0.6157501 0.45208,0.95609 L 0.99201335,5.6247527 1.1548534,7.8622928 0,3.6235827 Z"
-         id="path883"
-         sodipodi:nodetypes="cccccccccccccc" />
-    </marker>
-    <marker
-       markerWidth="5.8507123"
-       markerHeight="5.8223991"
-       refX="2.9253561"
-       refY="2.9111996"
-       orient="auto"
-       id="markBurst">
-      <path
-         sodipodi:type="star"
-         style="fill:context-stroke;fill-opacity:1;stroke:context-stroke;stroke-width:0.5;stroke-linecap:round;stroke-miterlimit:6;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-         id="path7776"
-         inkscape:flatsided="false"
-         sodipodi:sides="13"
-         sodipodi:cx="41.071331"
-         sodipodi:cy="27.17461"
-         sodipodi:r1="0.021484101"
-         sodipodi:r2="2.1484101"
-         sodipodi:arg1="0.63316311"
-         sodipodi:arg2="0.87482408"
-         inkscape:rounded="0"
-         inkscape:randomized="0.01"
-         d="m 41.098768,27.179276 1.355038,1.640381 -1.381499,-1.629195 0.439238,2.080063 -0.4318,-2.071694 -0.581914,2.047195 0.565867,-2.04433 -1.470963,1.540762 1.444975,-1.568938 -1.994899,0.702678 2.027545,-0.690564 -2.126251,-0.328236 2.087126,0.328535 -1.681135,-1.293912 1.701112,1.275862 -0.935369,-1.938915 0.950741,1.933695 0.08529,-2.151751 -0.09481,2.135533 1.058258,-1.846136 -1.023811,1.840072 1.798647,-1.139001 -1.781466,1.160706 2.119403,-0.17049 -2.116135,0.171718 1.93466,0.828665 z"
-         inkscape:transform-center-x="-0.0018037696"
-         inkscape:transform-center-y="-0.011137567"
-         transform="matrix(1.3485138,0,0,1.3485138,-52.468176,-33.713729)" />
-    </marker>
     <filter
        inkscape:collect="always"
        style="color-interpolation-filters:sRGB"
@@ -190,7 +124,7 @@
          y="65.382004">Beer Name</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3333px;line-height:1.25;font-family:'Roboto Condensed';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#073763;fill-opacity:1;stroke:none"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.3333px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#073763;fill-opacity:1;stroke:none"
        x="9.3073807"
        y="92.745285"
        id="txtStyle"><tspan
@@ -296,7 +230,7 @@
        y="105.45023"
        inkscape:svg-dpi="1" />
     <path
-       style="fill:none;stroke:#ff0000;stroke-width:1.92;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#StopL);paint-order:fill markers stroke"
+       style="fill:none;stroke:#ff0000;stroke-width:2.88000001;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:;paint-order:normal"
        d="M 6.6081072,159.024 H 103.66685"
        id="abvLine"
        sodipodi:nodetypes="cc" />
@@ -322,7 +256,7 @@
          y="147.31357">8%</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:'Roboto';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:8px;line-height:1.25;font-family:'Roboto';;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#4e4e4e;fill-opacity:1;stroke:none;stroke-width:0.96;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        x="83.713341"
        y="147.31357"
        id="txtBoozy"><tspan

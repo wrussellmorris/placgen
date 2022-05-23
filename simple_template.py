@@ -81,9 +81,6 @@ def TransformSvg(template_svg_path: str, placard_svg_path: str, brewer: str, bee
     abvLineInstr = PathDToList(abvLine.get('d'))
 
     if abv > 9:
-        # Change line ending if this is a boozy beer
-        abvLineStyle['marker-end'] = "url(#markBurst)"
-
         # Change ABV text color
         txtAbv = root.find(".//*[@id='txtAbv']")
         txtAbvStyle = StyleToDict(txtAbv.get('style'))
