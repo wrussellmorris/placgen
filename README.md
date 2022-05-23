@@ -3,9 +3,9 @@
 ## Prerequisites
 
 ### Linux packages
-**pip, Inkscape, ImageMagick, qpdf, exiftools**
+**pip, qpdf, texlive-extra-utils (for pdfcrop)**
 ```bash
-sudo apt install pip inkscape imagemagick qpdf
+sudo apt install pip qpdf texlive-extra-utils
 ```
 
 ### Python packages
