@@ -1,8 +1,11 @@
+import argparse
 import os.path
 import os
 
+from datetime import datetime
 from hashlib import md5
-
+from PyPDF2 import PdfReader, PdfWriter
+from PyPDF2.generic import createStringObject, NameObject
 
 class Status:
     def __init__(self):
@@ -106,3 +109,59 @@ class Hashes:
         if not relpath in self.__files:
             raise Exception(f'No hash info for {relpath} (from {file_path})')
         return self.__files[relpath].hash()
+
+
+_singleton = None
+_description = ""
+
+
+def ArgumentParser(description=None, *arg_l, **arg_d):
+    global _singleton, _description
+    if description:
+        if _description:
+            _description += " & "+description
+        else:
+            _description = description
+    if _singleton is None:
+        _singleton = argparse.ArgumentParser(
+            description=_description, *arg_l, **arg_d)
+        _singleton.add_argument('--force', default=False,
+                                action=argparse.BooleanOptionalAction, help='Force regeneration of the SVG placard even if no changes are detected.')
+        _singleton.add_argument('--debug', default=False,
+                                action=argparse.BooleanOptionalAction, help='Do not overwrite status messages during execution')
+        _singleton.add_argument('--beer', default=None,
+                                help='Only process beers with this exact name')
+
+    return _singleton
+
+
+def syscmd(cmd):
+    parser = ArgumentParser()
+    args = parser.parse_args()
+    redirect = '' if args.debug else ' > /dev/null 2>&1'
+    return os.system(f'{cmd} {redirect}')
+
+def make_hash_stable_pdf(pdf_path):
+    # Get rid of dynamic ids
+    pdf_path_cleansed = f'{pdf_path}.cleansed'
+    status.write(f'pdf path: {pdf_path}, {pdf_path_cleansed}')
+    if syscmd(f'qpdf --static-id --pages {pdf_path} 1-z -- --empty {pdf_path_cleansed}') != 0:
+        raise Exception(
+            f'Failed to make pdf hash-stable.  Do you have qpdf installed?')
+
+    # Kill creator and date-related metadata buried way down in the doc by Chrome's PDF renderer
+    blank = u'blank'
+    blank_date = u"D:20220101000000+00'00'"
+    reader = PdfReader(pdf_path_cleansed)
+    writer = PdfWriter()
+    for page_num in range(reader.getNumPages()):
+        infoDict = reader.flattened_pages[page_num].get_object()['/Resources']['/XObject']['/Im1']['/PTEX.InfoDict']
+        infoDict[NameObject('/Creator')] = createStringObject(blank)
+        infoDict[NameObject('/CreationDate')] = createStringObject(blank_date)
+        infoDict[NameObject('/ModDate')] = createStringObject(blank_date)
+        infoDict[NameObject('/Producer')] = createStringObject(blank)
+        writer.add_page(reader.flattened_pages[page_num])
+    with open(pdf_path, 'wb') as output_stream:
+        writer.write(output_stream)
+        
+    os.remove(pdf_path_cleansed)

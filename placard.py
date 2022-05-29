@@ -6,45 +6,52 @@ import os.path
 import os
 import simple_template
 import re
-from utils import Hashes, status
+from multiprint import create_multiprint_pdf
+from utils import Hashes, make_hash_stable_pdf, status, ArgumentParser, syscmd
 
-data_spreadsheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
-data_spreadsheet_range = 'Placards!A2:E'
-drive_shared_drive_id = '0ALUzUy2w2YeeUk9PVA'
-drive_root_folder_id = '1syThtSUpFmP6vQ_erMh3BDGztN4qPEhD'
-
-parser = argparse.ArgumentParser('Placard generator')
-parser.add_argument('--sheet_id', default=data_spreadsheet_id,
-                    help='Id of Google Sheet to read from')
-parser.add_argument('--sheet_range', default=data_spreadsheet_range,
-                    help='Range of Google Sheet to select')
-parser.add_argument('--drive_root_folder_id', default=drive_root_folder_id,
-                    help='Id of Google Drive folder used as Placards master folder')
-parser.add_argument('--force', default=False,
-                    action=argparse.BooleanOptionalAction, help='Force regeneration of the SVG placard even if no changes are detected.')
-parser.add_argument('--debug', default=False,
-                    action=argparse.BooleanOptionalAction, help='Do not overwrite status messages during execution')
-parser.add_argument('--upload', default=True,
-                    action=argparse.BooleanOptionalAction, help='Upload to Google Drive after generation')
-parser.add_argument('--beer', default=None,
-                    help='Only process beers with this exact name')
+__placard_spreadsheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
+__placard_spreadsheet_range = 'Placards!A2:E'
+__multiprint_sheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
+__multiprint_sheet_range = 'Multiprint!A2:A'
+__drive_root_folder_id = '1syThtSUpFmP6vQ_erMh3BDGztN4qPEhD'
 
 
 def main():
-
+    parser = ArgumentParser()
+    parser.add_argument('--upload', default=True,
+                        action=argparse.BooleanOptionalAction, help='Upload to Google Drive after generation')
+    parser.add_argument('--placard_sheet_id', default=__placard_spreadsheet_id,
+                        help='Id of Google Sheet to read from')
+    parser.add_argument('--placard_sheet_range', default=__placard_spreadsheet_range,
+                        help='Tab and range of Google Sheet to select beers')
+    parser.add_argument('--drive_root_folder_id', default=__drive_root_folder_id,
+                        help='Id of Google Drive folder used as Placards master folder')
+    parser.add_argument('--multiprint', default=False,
+                        action=argparse.BooleanOptionalAction, help='Print all placards marked as "Print" in --multiprint_sheet_id, 6 per page')
+    parser.add_argument('--multiprint_all', default=False,
+                        action=argparse.BooleanOptionalAction, help='Print all placards, 6 per page')
+    parser.add_argument('--multiprint_sheet_id', default=__multiprint_sheet_id,
+                        help='Tab and range of Google Sheet to select beers to multiprint')
+    parser.add_argument('--multiprint_sheet_range', default=__multiprint_sheet_range,
+                        help='Tab and range of Google Sheet to select beers to multiprint')
     args = parser.parse_args()
+
     status.debug(args.debug)
 
     gcloud = gcloud_helper.GCloud(args.drive_root_folder_id)
-    gcloud.add_upload_folder('PNG', 'image/png')
-    gcloud.add_upload_folder('SVG', 'image/svg+xml')
-    gcloud.add_upload_folder('PDF', 'application/pdf')
 
-    if args.upload:
-        gcloud.init_drive()
+    multiprint_outputs = set()
+    multiprint_selected = []
+    if args.multiprint:
+        multiprint_selected = [
+            row[0] == 'TRUE' for row in gcloud.load_sheet(
+                args.multiprint_sheet_id, args.multiprint_sheet_range, 1)]
 
     status.push("Processing")
-    for row in gcloud.load_sheet(args.sheet_id, args.sheet_range):
+    beer_index = 0
+
+    prepared = []
+    for row in gcloud.load_sheet(args.placard_sheet_id, args.placard_sheet_range, 5):
         (brewer, beer, style, abv_str, logo_url) = row
         if args.beer is not None and args.beer != beer:
             continue
@@ -54,63 +61,35 @@ def main():
                           f"{brewer.lower()}_{beer}".lower())
         placard_dir = os.path.join(os.path.curdir, 'prepared', beer_dir)
         os.makedirs(placard_dir, exist_ok=True)
-        stem_path = os.path.join(placard_dir, 'placard')
-        svg_path = f'{stem_path}.svg'
-        png_path = f'{stem_path}.png'
-        pdf_path = f'{stem_path}.pdf'
 
-        hashes_file = os.path.join(placard_dir, 'hashes.md5')
-        hashes = Hashes(hashes_file)
+        prepared.append(simple_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url))
 
-        # Hash input data
-        hashes.add_blob('data', ",".join(row).encode('utf8'))
-        hashes.add_file(svg_path)
-        hashes.add_file(png_path)
-        hashes.add_file(pdf_path)
-
-        simple_template.process(
-            args.force, placard_dir, svg_path, hashes, brewer, beer, style, abv_str, logo_url)
-
-        redirect = '' if args.debug else ' > /dev/null 2>&1'
-        if os.system(f"google-chrome --headless --window-size=278x278 --screenshot --hide-scrollbars {svg_path} {redirect}") != 0:
-            raise Exception(f"Failed to convert {svg_path} to PNG")
-
-        if os.system(f"google-chrome --headless --print-to-pdf --print-to-pdf-no-header {svg_path} {redirect}") != 0:
-            raise Exception(f"Failed to convert {svg_path} to PDF")
-
-        # Chrome dumps 'output.pdf' and 'screenshot.png' in curdir
-        if os.system(f'mv output.pdf {pdf_path} {redirect}') != 0:
-            raise Exception(f'Failed to mv ./output.pdf to {placard_dir}')
-        if os.system(f'mv screenshot.png {png_path} {redirect}') != 0:
-            raise Exception(f'Failed to mv ./screenshot.png to {placard_dir}')
-
-        # Crop the PDF, as chrome saves with a bunch of extra whitespace.
-        if os.system(f"pdfcrop {pdf_path} {pdf_path} {redirect}") != 0:
-            raise Exception(
-                f"Failed to crop {pdf_path}.  Do you have pdfcrop installed?")
-
-        # Make the PDF hash stable by getting rid of metadata and dynamic ids
-        pdf_path_cleansed = f'{pdf_path}.cleansed'
-        if os.system(f'qpdf --static-id --pages {pdf_path} 1-z -- --empty {pdf_path_cleansed} ' +
-                     f'&& qpdf --static-id {pdf_path_cleansed} {pdf_path} {redirect}') != 0:
-            raise Exception(
-                f'Failed to make pdf idempotent.  Do you have qpdf installed?')
-        os.remove(pdf_path_cleansed)
-
-        if args.upload:
-            status.push("Uploading")
-            gcloud.push_to_folder('PNG', brewer, beer,
-                                  png_path, hashes.get_hash(png_path))
-            gcloud.push_to_folder('PDF', brewer, beer,
-                                  pdf_path, hashes.get_hash(pdf_path))
-            gcloud.push_to_folder('SVG', brewer, beer,
-                                  svg_path, hashes.get_hash(svg_path))
-            status.pop()
-
-        # Record everything that went into this run
-        hashes.save()
+        # Add to multiprint, if necessary
+        if args.multiprint and beer_index < len(multiprint_selected) and (multiprint_selected[beer_index] or args.multiprint_all):
+            multiprint_outputs.add(prepared[-1])
         status.pop()
+        beer_index += 1
     status.pop()
+
+    if args.upload:
+        status.push("Uploading")
+
+        gcloud.add_upload_folder('PNG', 'image/png')
+        gcloud.add_upload_folder('SVG', 'image/svg+xml')
+        gcloud.add_upload_folder('PDF', 'application/pdf')
+        gcloud.init_drive()
+
+        for placard in prepared:
+            for output in placard.output_files:
+                status.write(f'output {output.type} {placard.brewer} {placard.beer} {output.file_path} {output.get_hash()}')
+                gcloud.push_to_folder(output.type, placard.brewer, placard.beer,
+                                        output.file_path, output.get_hash())
+        status.pop()
+
+    if (args.multiprint and len(multiprint_outputs) > 0):
+        # Call multiprint
+        multiprint_pdf_path = create_multiprint_pdf([output.svg_path for output in multiprint_outputs])
+        syscmd(f'google-chrome {multiprint_pdf_path}')
 
 
 if __name__ == '__main__':

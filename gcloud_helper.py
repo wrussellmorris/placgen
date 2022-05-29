@@ -11,7 +11,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-from utils import status
+from utils import status, ArgumentParser
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = [
@@ -20,6 +20,7 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive.file'
 ]
 
+parser = ArgumentParser()
 
 
 class GCloud:
@@ -51,9 +52,11 @@ class GCloud:
                 return
             self.hash = item['properties']['md5']
 
-    def __init__(self, placards_folder_id):
+    def __init__(self, placard_folder_id):
+        self.__args = parser.parse_args()
+
         self.__init_gapi()
-        self.__placards_folder_id = placards_folder_id
+        self.__placards_folder_id = placard_folder_id
         self.__remote_hashes_loaded = False
         self.__upload_folders = {}
         self.__upload_folders_loaded = False
@@ -237,7 +240,7 @@ class GCloud:
                 supportsAllDrives=True,
                 fields="id").execute()
 
-    def load_sheet(self, spreadsheet_id, range_name):
+    def load_sheet(self, spreadsheet_id, range_name, min_cols):
         result = self.__sheets.values().get(spreadsheetId=spreadsheet_id,
                                             range=range_name).execute()
         values = result.get('values', [])
@@ -245,6 +248,6 @@ class GCloud:
             status.write('No data found.')
             return []
         for row in values:
-            while len(row) < 5:
+            while len(row) < min_cols:
                 row.append('')
         return values
