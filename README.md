@@ -10,5 +10,5 @@ sudo apt install pip qpdf texlive-extra-utils
 
 ### Python packages
 ```bash
-pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib defusedxml
+pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib defusedxml PyPDF2
 ```
