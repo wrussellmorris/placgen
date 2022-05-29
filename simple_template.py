@@ -38,13 +38,13 @@ class SimpleTemplate:
         self.logo_url = logo_url
         self.__image_file = None
         stem = os.path.join(placard_dir, 'placard')
-        self.__svg_output = OutputFile('SVG', 'image/svg+xml', stem + '.svg', self.__hashes)
-        self.__png_output = OutputFile('PNG', 'image/png', stem + '.png', self.__hashes)
-        self.__pdf_output = OutputFile('PDF', 'application/pdf', stem + '.pdf', self.__hashes)
+        self.svg_output = OutputFile('SVG', 'image/svg+xml', stem + '.svg', self.__hashes)
+        self.png_output = OutputFile('PNG', 'image/png', stem + '.png', self.__hashes)
+        self.pdf_output = OutputFile('PDF', 'application/pdf', stem + '.pdf', self.__hashes)
         self.output_files = [
-            self.__svg_output,
-            self.__png_output,
-            self.__pdf_output,
+            self.svg_output,
+            self.png_output,
+            self.pdf_output,
         ]
         self.__process()
 
@@ -139,7 +139,7 @@ class SimpleTemplate:
         abvLine.set('style', self.__dict_to_style(abvLineStyle))
         abvLine.set('d', self.__list_to_path_d(abvLineInstr))
 
-        e.write(self.__svg_output.file_path)
+        e.write(self.svg_output.file_path)
 
     def __download_image_as_png(self):
         ContentTypes = {
@@ -174,9 +174,9 @@ class SimpleTemplate:
             self.__image_file = download_path
 
     def __create_png_and_pdf(self):
-        svg_path = self.__svg_output.file_path
-        png_path = self.__png_output.file_path
-        pdf_path = self.__pdf_output.file_path
+        svg_path = self.svg_output.file_path
+        png_path = self.png_output.file_path
+        pdf_path = self.pdf_output.file_path
 
         if syscmd(f"google-chrome --headless --window-size=278x278 --screenshot --hide-scrollbars {svg_path}") != 0:
             raise Exception(f"Failed to convert {svg_path} to PNG")

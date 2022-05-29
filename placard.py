@@ -88,7 +88,7 @@ def main():
 
     if (args.multiprint and len(multiprint_outputs) > 0):
         # Call multiprint
-        multiprint_pdf_path = create_multiprint_pdf([output.svg_path for output in multiprint_outputs])
+        multiprint_pdf_path = create_multiprint_pdf([output.svg_output.file_path for output in multiprint_outputs])
         syscmd(f'google-chrome {multiprint_pdf_path}')
 
 
