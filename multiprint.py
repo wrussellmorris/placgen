@@ -9,7 +9,7 @@ from utils import status, syscmd, ArgumentParser
 
 
 def svg_to_pdf(svg_path, pdf_path):
-    status.write('Convering multiprint page to PDF')
+    status.write('Converting multiprint page to PDF')
 
     # Print PDF to file
     if syscmd(f"google-chrome --headless --print-to-pdf --print-to-pdf-no-header {svg_path}") != 0:
