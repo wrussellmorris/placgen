@@ -144,7 +144,6 @@ def syscmd(cmd):
 def make_hash_stable_pdf(pdf_path):
     # Get rid of dynamic ids
     pdf_path_cleansed = f'{pdf_path}.cleansed'
-    status.write(f'pdf path: {pdf_path}, {pdf_path_cleansed}')
     if syscmd(f'qpdf --static-id --pages {pdf_path} 1-z -- --empty {pdf_path_cleansed}') != 0:
         raise Exception(
             f'Failed to make pdf hash-stable.  Do you have qpdf installed?')
