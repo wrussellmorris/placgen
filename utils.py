@@ -199,8 +199,7 @@ class Site:
     def prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
         placard = self._do_prepare_placard(
             brewer, beer, style, abv_str, logo_url)
-        if placard.processed:
-            self.prepared_placards.append(placard)
+        self.prepared_placards.append(placard)
         return placard
 
     def _safe_path(self, path: str):

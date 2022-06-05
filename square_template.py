@@ -7,17 +7,18 @@ import requests
 import defusedxml.ElementTree
 from utils import Hashes, PreparedPlacard, make_hash_stable_pdf, status, ArgumentParser, syscmd, OutputFile
 
-template_svg_path = os.path.join(os.curdir, 'templates/simple_template.svg')
+template_svg_path = os.path.join(os.curdir, 'templates/square_template.svg')
 
 
-def prepare_template(placard_dir, brewer, beer, style, abv, logo_url):
-    template = SimpleTemplate(placard_dir, brewer, beer, style, abv, logo_url)
+def prepare_template(placard_dir, brewer, beer, style, abv, logo_url, scale=1):
+    template = SimpleTemplate(
+        placard_dir, brewer, beer, style, abv, logo_url, scale)
     return template
 
 
 class SimpleTemplate(PreparedPlacard):
 
-    def __init__(self, placard_dir, brewer, beer, style, abv, logo_url):
+    def __init__(self, placard_dir, brewer, beer, style, abv, logo_url, scale):
         super().__init__(f'{brewer} - {beer}', placard_dir)
         self.__hashes = Hashes(os.path.join(placard_dir, 'hashes.md5'))
         self.brewer = brewer
@@ -27,9 +28,13 @@ class SimpleTemplate(PreparedPlacard):
         self.logo_url = logo_url
         self.__image_file = None
         stem = os.path.join(placard_dir, 'placard')
-        self.output_files['SVG'] = OutputFile('SVG', 'image/svg+xml', stem + '.svg', self.__hashes)
-        self.output_files['PNG'] = OutputFile('PNG', 'image/png', stem + '.png', self.__hashes)
-        self.output_files['PDF'] = OutputFile('PDF', 'application/pdf', stem + '.pdf', self.__hashes)
+        self.output_files['SVG'] = OutputFile(
+            'SVG', 'image/svg+xml', stem + '.svg', self.__hashes)
+        self.output_files['PNG'] = OutputFile(
+            'PNG', 'image/png', stem + '.png', self.__hashes)
+        self.output_files['PDF'] = OutputFile(
+            'PDF', 'application/pdf', stem + '.pdf', self.__hashes)
+        self.__scale = scale
         self.processed = self.__process()
 
     def __path_d_to_list(self, d):
@@ -123,7 +128,28 @@ class SimpleTemplate(PreparedPlacard):
         abvLine.set('style', self.__dict_to_style(abvLineStyle))
         abvLine.set('d', self.__list_to_path_d(abvLineInstr))
 
+        if self.__scale != 1:
+            # Transform the width/height of the root svg by the given scale
+            self.__scale_length_propery(root, 'width')
+            self.__scale_length_propery(root, 'height')
+
         e.write(self.output_files['SVG'].file_path)
+
+    def __scale_length_propery(self, element, property):
+        raw = element.get(property)
+        match = re.match('^([0-9]+|[0-9]+\.[0-9]+)([a-z][a-z]|%)$', raw)
+        if match is None:
+            raise Exception(f'Not able to interpret {raw} as a length.')
+
+        number = float(match.group(1))
+        if '%' == match.group(2):
+            # Percentage values are just set to the scale as a percentage
+            number = self.__scale * 100
+        else:
+            # Actual numbers are scaled by the scaling factor
+            number = number * self.__scale
+
+        element.set(property, f'{number}{match.group(2)}')
 
     def __download_image_as_png(self):
         ContentTypes = {
@@ -162,7 +188,11 @@ class SimpleTemplate(PreparedPlacard):
         png_path = self.output_files['PNG'].file_path
         pdf_path = self.output_files['PDF'].file_path
 
-        if syscmd(f"google-chrome --headless --window-size=278x278 --screenshot --hide-scrollbars {svg_path}") != 0:
+        window_size = 278
+        if self.__scale != 1:
+            window_size = int(window_size*self.__scale)
+
+        if syscmd(f'google-chrome --headless --window-size={window_size}x{window_size} --screenshot --hide-scrollbars {svg_path}') != 0:
             raise Exception(f"Failed to convert {svg_path} to PNG")
 
         if syscmd(f"google-chrome --headless --print-to-pdf --print-to-pdf-no-header {svg_path}") != 0:
@@ -183,7 +213,7 @@ class SimpleTemplate(PreparedPlacard):
         # Make the PDF hash stable by getting rid of metadata and dynamic ids
         make_hash_stable_pdf(pdf_path)
 
-    def __process(self, ) -> bool:
+    def __process(self) -> bool:
         parser = ArgumentParser()
         args = parser.parse_args()
 
@@ -205,7 +235,8 @@ class SimpleTemplate(PreparedPlacard):
             self.beer,
             self.style,
             str(self.abv),
-            self.logo_url
+            self.logo_url,
+            str(self.__scale)
         ]
         self.__hashes.add_blob('data', ','.join(data).encode('utf8'))
 

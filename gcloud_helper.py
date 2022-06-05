@@ -36,8 +36,6 @@ class GCloud:
             self.id = None
             self.upload_folders: Dict[str, GCloud._UploadFolder] = {}
             for placard in site.prepared_placards:
-                if not placard.processed:
-                     continue
                 for name, output_file in placard.output_files.items():
                     if not name in self.upload_folders:
                         self.upload_folders[name] = GCloud._UploadFolder(
@@ -210,7 +208,8 @@ class GCloud:
             for placard in site.prepared_placards:
                 status.push(placard.name)
                 for output_file in placard.output_files.values():
-                    self._push_to_folder(site_folder.upload_folders[output_file.type], placard, output_file)
+                    self._push_to_folder(
+                        site_folder.upload_folders[output_file.type], placard, output_file)
                     pass
                 status.pop()
             status.pop()
@@ -219,7 +218,8 @@ class GCloud:
 
         # Create name, do initial change detection
         escaping = str.maketrans({'\\': '\\\\', "'": "\'"})
-        file_name = f'{placard.name}{os.path.splitext(output_file.file_path)[1]}'.translate(escaping)
+        file_name = f'{placard.name}{os.path.splitext(output_file.file_path)[1]}'.translate(
+            escaping)
 
         # Do change detection
         local_hash = output_file.get_hash()
