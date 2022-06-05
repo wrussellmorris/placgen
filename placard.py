@@ -7,7 +7,7 @@ import os
 import simple_template
 import re
 from multiprint import create_multiprint_pdf
-from utils import Hashes, make_hash_stable_pdf, status, ArgumentParser, syscmd
+from utils import Hashes, make_hash_stable_pdf, status, ArgumentParser, syscmd, Site, PreparedPlacard
 
 __placard_spreadsheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
 __placard_spreadsheet_range = 'Placards!A2:E'
@@ -15,6 +15,23 @@ __multiprint_sheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
 __multiprint_sheet_range = 'Multiprint!A2:A'
 __drive_root_folder_id = '1syThtSUpFmP6vQ_erMh3BDGztN4qPEhD'
 
+class GoldPan(Site):
+    def __init__(self, prepared_dir):
+        super().__init__('Gold Pan', prepared_dir)
+
+    def _do_prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
+        placard_dir = os.path.join(self.site_dir, self._safe_path(f'{brewer}_{beer}'))
+        os.makedirs(placard_dir, exist_ok=True)
+        return simple_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url)
+
+class CornerPocket(Site):
+    def __init__(self, prepared_dir):
+        super().__init__('Corner Pocket', prepared_dir)
+
+    def _do_prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
+        placard_dir = os.path.join(self.site_dir, self._safe_path(f'{brewer}_{beer}'))
+        os.makedirs(placard_dir, exist_ok=True)
+        return simple_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url)
 
 def main():
     parser = ArgumentParser()
@@ -34,11 +51,20 @@ def main():
                         help='Tab and range of Google Sheet to select beers to multiprint')
     parser.add_argument('--multiprint_sheet_range', default=__multiprint_sheet_range,
                         help='Tab and range of Google Sheet to select beers to multiprint')
+    parser.add_argument('--site', default=None, help='Only do work for the given site')
     args = parser.parse_args()
 
     status.debug(args.debug)
 
-    gcloud = gcloud_helper.GCloud(args.drive_root_folder_id)
+    if args.multiprint and args.site is None:
+        print('Must specify --site when using --multiprint')
+        return
+
+    prepared_dir = os.path.join(os.curdir, 'prepared')
+    os.makedirs(prepared_dir, exist_ok=True)
+    sites = [GoldPan(prepared_dir), CornerPocket(prepared_dir)]
+
+    gcloud = gcloud_helper.GCloud(args.drive_root_folder_id, sites)
 
     multiprint_outputs = set()
     multiprint_selected = []
@@ -47,7 +73,7 @@ def main():
             row[0] == 'TRUE' for row in gcloud.load_sheet(
                 args.multiprint_sheet_id, args.multiprint_sheet_range, 1)]
 
-    status.push("Processing")
+    status.push("Preparing placards")
     beer_index = 0
 
     prepared = []
@@ -57,38 +83,25 @@ def main():
             continue
 
         status.push(f'{brewer} - {beer}')
-        beer_dir = re.sub('[^a-zA-Z0-9_-]', '_',
-                          f"{brewer.lower()}_{beer}".lower())
-        placard_dir = os.path.join(os.path.curdir, 'prepared', beer_dir)
-        os.makedirs(placard_dir, exist_ok=True)
+        for site in sites:
+            status.push(site.name)
+            prepared_placard = site.prepare_placard(brewer, beer, style, abv_str,logo_url)
+            # Add to multiprint, if necessary
+            if args.multiprint and args.site == site.name and (multiprint_selected[beer_index] or args.multiprint_all):
+                multiprint_outputs.add(prepared_placard)
+            status.pop()
 
-        prepared.append(simple_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url))
-
-        # Add to multiprint, if necessary
-        if args.multiprint and beer_index < len(multiprint_selected) and (multiprint_selected[beer_index] or args.multiprint_all):
-            multiprint_outputs.add(prepared[-1])
         status.pop()
         beer_index += 1
+
     status.pop()
 
     if args.upload:
-        status.push("Uploading")
-
-        gcloud.add_upload_folder('PNG', 'image/png')
-        gcloud.add_upload_folder('SVG', 'image/svg+xml')
-        gcloud.add_upload_folder('PDF', 'application/pdf')
-        gcloud.init_drive()
-
-        for placard in prepared:
-            for output in placard.output_files:
-                status.write(f'output {output.type} {placard.brewer} {placard.beer} {output.file_path} {output.get_hash()}')
-                gcloud.push_to_folder(output.type, placard.brewer, placard.beer,
-                                        output.file_path, output.get_hash())
-        status.pop()
+        gcloud.upload()
 
     if (args.multiprint and len(multiprint_outputs) > 0):
         # Call multiprint
-        multiprint_pdf_path = create_multiprint_pdf([output.svg_output.file_path for output in multiprint_outputs])
+        multiprint_pdf_path = create_multiprint_pdf([output.output_files['SVG'].file_path for output in multiprint_outputs])
         syscmd(f'google-chrome {multiprint_pdf_path}')
 
 

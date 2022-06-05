@@ -5,7 +5,7 @@ import re
 from urllib.parse import urlencode
 import requests
 import defusedxml.ElementTree
-from utils import Hashes, make_hash_stable_pdf, status, ArgumentParser, syscmd
+from utils import Hashes, PreparedPlacard, make_hash_stable_pdf, status, ArgumentParser, syscmd, OutputFile
 
 template_svg_path = os.path.join(os.curdir, 'templates/simple_template.svg')
 
@@ -15,21 +15,10 @@ def prepare_template(placard_dir, brewer, beer, style, abv, logo_url):
     return template
 
 
-class OutputFile:
-    def __init__(self, type, mime_type, file_path, hashes):
-        self.type = type
-        self.mime_type = mime_type
-        self.file_path = file_path
-        self.__hashes : Hashes = hashes
-
-    def get_hash(self):
-        return self.__hashes.get_hash(self.file_path)
-
-
-class SimpleTemplate:
+class SimpleTemplate(PreparedPlacard):
 
     def __init__(self, placard_dir, brewer, beer, style, abv, logo_url):
-        self.__placard_dir = placard_dir
+        super().__init__(f'{brewer} - {beer}', placard_dir)
         self.__hashes = Hashes(os.path.join(placard_dir, 'hashes.md5'))
         self.brewer = brewer
         self.beer = beer
@@ -38,15 +27,10 @@ class SimpleTemplate:
         self.logo_url = logo_url
         self.__image_file = None
         stem = os.path.join(placard_dir, 'placard')
-        self.svg_output = OutputFile('SVG', 'image/svg+xml', stem + '.svg', self.__hashes)
-        self.png_output = OutputFile('PNG', 'image/png', stem + '.png', self.__hashes)
-        self.pdf_output = OutputFile('PDF', 'application/pdf', stem + '.pdf', self.__hashes)
-        self.output_files = [
-            self.svg_output,
-            self.png_output,
-            self.pdf_output,
-        ]
-        self.__process()
+        self.output_files['SVG'] = OutputFile('SVG', 'image/svg+xml', stem + '.svg', self.__hashes)
+        self.output_files['PNG'] = OutputFile('PNG', 'image/png', stem + '.png', self.__hashes)
+        self.output_files['PDF'] = OutputFile('PDF', 'application/pdf', stem + '.pdf', self.__hashes)
+        self.processed = self.__process()
 
     def __path_d_to_list(self, d):
         if d == None or d == '':
@@ -139,7 +123,7 @@ class SimpleTemplate:
         abvLine.set('style', self.__dict_to_style(abvLineStyle))
         abvLine.set('d', self.__list_to_path_d(abvLineInstr))
 
-        e.write(self.svg_output.file_path)
+        e.write(self.output_files['SVG'].file_path)
 
     def __download_image_as_png(self):
         ContentTypes = {
@@ -155,7 +139,7 @@ class SimpleTemplate:
                 raise Exception(
                     f'Unsupported Content-Type: {contentType} from {self.__image_url}')
             download_path = os.path.join(
-                self.__placard_dir, f'downloaded.{ContentTypes[contentType]}')
+                self.placard_dir, f'downloaded.{ContentTypes[contentType]}')
             with open(download_path, 'wb+') as f:
                 f.write(response.content)
                 f.close()
@@ -174,9 +158,9 @@ class SimpleTemplate:
             self.__image_file = download_path
 
     def __create_png_and_pdf(self):
-        svg_path = self.svg_output.file_path
-        png_path = self.png_output.file_path
-        pdf_path = self.pdf_output.file_path
+        svg_path = self.output_files['SVG'].file_path
+        png_path = self.output_files['PNG'].file_path
+        pdf_path = self.output_files['PDF'].file_path
 
         if syscmd(f"google-chrome --headless --window-size=278x278 --screenshot --hide-scrollbars {svg_path}") != 0:
             raise Exception(f"Failed to convert {svg_path} to PNG")
@@ -204,8 +188,8 @@ class SimpleTemplate:
         args = parser.parse_args()
 
         # Figure out which image file (if any) we are going to use
-        custom_file = os.path.join(self.__placard_dir, 'custom.png')
-        downloaded_file = os.path.join(self.__placard_dir, 'downloaded.png')
+        custom_file = os.path.join(self.placard_dir, 'custom.png')
+        downloaded_file = os.path.join(self.placard_dir, 'downloaded.png')
         if os.path.isfile(custom_file):
             # Use custom.png if present
             self.__image_file = custom_file
@@ -230,7 +214,7 @@ class SimpleTemplate:
             self.__hashes.add_file(self.__image_file)
 
         # Hash output files
-        for output_file in self.output_files:
+        for output_file in self.output_files.values():
             self.__hashes.add_file(output_file.file_path)
 
         # Hash the template svg

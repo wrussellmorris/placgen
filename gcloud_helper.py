@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os.path
 import os
+from typing import Dict, List
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -11,7 +12,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-from utils import status, ArgumentParser
+from utils import OutputFile, PreparedPlacard, Site, status, ArgumentParser
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = [
@@ -24,12 +25,31 @@ parser = ArgumentParser()
 
 
 class GCloud:
-
-    class _UploadFolder:
-        def __init__(self, name: str, mime_type: str):
+    class Folder:
+        def __init__(self, name):
             self.name = name
-            self.mime_type = mime_type
             self.id = None
+
+    class _SiteFolder(Folder):
+        def __init__(self, site: Site):
+            self.name = site.name
+            self.id = None
+            self.upload_folders: Dict[str, GCloud._UploadFolder] = {}
+            for placard in site.prepared_placards:
+                if not placard.processed:
+                     continue
+                for name, output_file in placard.output_files.items():
+                    if not name in self.upload_folders:
+                        self.upload_folders[name] = GCloud._UploadFolder(
+                            name, output_file.mime_type)
+                    elif self.upload_folders[name].mime_type != output_file.mime_type:
+                        raise Exception(
+                            f'Mismatched upload folder mime type for {name}.  Both {self.upload_folders[name].mime_type} and {output_file.mime_type} use that name.')
+
+    class _UploadFolder(Folder):
+        def __init__(self, name: str, mime_type: str):
+            super().__init__(name)
+            self.mime_type = mime_type
             self.__file_name_to_hash = {}
 
         def set_file_hash(self, name, hash):
@@ -52,14 +72,15 @@ class GCloud:
                 return
             self.hash = item['properties']['md5']
 
-    def __init__(self, placard_folder_id):
+    def __init__(self, placard_folder_id: str, sites: List[Site]):
         self.__args = parser.parse_args()
 
         self.__init_gapi()
         self.__placards_folder_id = placard_folder_id
         self.__remote_hashes_loaded = False
-        self.__upload_folders = {}
-        self.__upload_folders_loaded = False
+        self.__sites = sites
+        self.__site_folders: Dict[str, GCloud._SiteFolder] = {}
+        self.__site_folders_loaded = False
         self.__drive_initialized = False
 
     def __init_gapi(self):
@@ -80,79 +101,77 @@ class GCloud:
         self.__files = build('drive', 'v3', credentials=creds).files()
         self.__sheets = build('sheets', 'v4', credentials=creds).spreadsheets()
 
-    def add_upload_folder(self, name, content_mime_type):
-        self.__upload_folders[name] = GCloud._UploadFolder(
-            name, content_mime_type)
-
-    def __init_upload_folders(self):
-        if self.__upload_folders_loaded:
+    def __init_site_folders(self):
+        if self.__site_folders_loaded:
             return
-        self.__upload_folders_loaded = True
+        self.__site_folders_loaded = True
 
-        for folder in self.__upload_folders.values():
-            folder.id = self.__get_or_create_folder_id(folder.name)
+        for site in self.__sites:
+            site_folder = GCloud._SiteFolder(site)
+            self.__site_folders[site.name] = site_folder
+            self.__get_or_create_folder_id(
+                self.__placards_folder_id, site_folder)
+            for folder in site_folder.upload_folders.values():
+                self.__get_or_create_folder_id(site_folder.id, folder)
 
     def __load_remote_hashes(self):
         if self.__remote_hashes_loaded:
             return
         self.__remote_hashes_loaded = True
-        self.__init_upload_folders()
+        self.__init_site_folders()
 
         status.push("Loading remote hashes")
-        # List files in each of the main upload dirs
-        for folder in self.__upload_folders.values():
-            names = set()
-            status.push(folder.name)
-            nextPageToken = ''
-            page = 1
-            while True:
-                results = self.__files.list(
-                    q=f"mimeType='{folder.mime_type}' and parents in '{folder.id}' and trashed=false",
-                    spaces='drive',
-                    pageSize=10,
-                    includeItemsFromAllDrives=True,
-                    supportsAllDrives=True,
-                    fields="nextPageToken, files(id, name, properties)",
-                    pageToken=nextPageToken).execute()
-                items = results.get('files', [])
-                nextPageToken = results.get('nextPageToken')
-                for item in items:
-                    remote = GCloud._RemoteFileData(item)
-                    if remote.name in names:
-                        raise Exception(
-                            f'Duplicate remote file {folder.name} / {remote.name}')
-                    names.add(remote.name)
-                    status.write(remote.name)
-                    folder.set_file_hash(remote.name, remote.hash)
-                page += 1
-                if nextPageToken is None:
-                    break
+        # List files in each site's upload folders
+        for site_folder in self.__site_folders.values():
+            for folder in site_folder.upload_folders.values():
+                names = set()
+                status.push(folder.name)
+                nextPageToken = ''
+                page = 1
+                while True:
+                    results = self.__files.list(
+                        q=f"mimeType='{folder.mime_type}' and parents in '{folder.id}' and trashed=false",
+                        spaces='drive',
+                        pageSize=10,
+                        includeItemsFromAllDrives=True,
+                        supportsAllDrives=True,
+                        fields="nextPageToken, files(id, name, properties)",
+                        pageToken=nextPageToken).execute()
+                    items = results.get('files', [])
+                    nextPageToken = results.get('nextPageToken')
+                    for item in items:
+                        remote = GCloud._RemoteFileData(item)
+                        if remote.name in names:
+                            raise Exception(
+                                f'Duplicate remote file {folder.name} / {remote.name}')
+                        names.add(remote.name)
+                        status.write(remote.name)
+                        folder.set_file_hash(remote.name, remote.hash)
+                    page += 1
+                    if nextPageToken is None:
+                        break
+                status.pop()
             status.pop()
-        status.pop()
 
-    def __get_or_create_folder_id(self, folder_name):
-        if not folder_name in self.__upload_folders:
-            raise Exception(f'Unknown upload folder {folder_name}')
-        folder = self.__upload_folders[folder_name]
+    def __get_or_create_folder_id(self, parent_folder_id, folder: Folder):
         if folder.id:
             return folder.id
 
         item = self.__find_existing_item(
-            self.__placards_folder_id, folder_name, 'application/vnd.google-apps.folder')
+            parent_folder_id, folder.name, 'application/vnd.google-apps.folder')
         if not item:
             # Need to create folder in parent
-            status.write(f'Creating upload folder {folder_name}')
+            status.write(f'Creating upload folder {folder.name}')
             file_metadata = {
-                'name': folder_name,
+                'name': folder.name,
                 'mimeType': 'application/vnd.google-apps.folder',
-                'parents': [self.__placards_folder_id]
+                'parents': [parent_folder_id]
             }
             result = self.__files.create(body=file_metadata, supportsAllDrives=True,
                                          fields='id').execute()
             folder.id = result.get('id')
         else:
             folder.id = item['id']
-        return folder.id
 
     def __find_existing_item(self, parent_folder_id: str, item_name: str, mime_type: str):
         results = self.__files.list(
@@ -175,28 +194,37 @@ class GCloud:
 
         try:
             status.push("Preparing Google Drive folder(s)")
-            self.__init_upload_folders()
+            self.__init_site_folders()
             self.__load_remote_hashes()
         finally:
             status.pop()
         self.__drive_initialized = True
 
-    def push_to_folder(self, folder_name, brewer, beer, file_path, md5_file_hash):
+    def upload(self):
         self.init_drive()
 
-        # Get folder id for folder_name
-        if not folder_name in self.__upload_folders:
-            raise Exception(f'Unknown upload folder {folder_name}')
-        folder = self.__upload_folders[folder_name]
+        status.push('Sync')
+        for site in self.__sites:
+            status.push(site.name)
+            site_folder = self.__site_folders[site.name]
+            for placard in site.prepared_placards:
+                status.push(placard.name)
+                for output_file in placard.output_files.values():
+                    self._push_to_folder(site_folder.upload_folders[output_file.type], placard, output_file)
+                    pass
+                status.pop()
+            status.pop()
+
+    def _push_to_folder(self, upload_folder: _UploadFolder, placard: PreparedPlacard, output_file: OutputFile):
 
         # Create name, do initial change detection
         escaping = str.maketrans({'\\': '\\\\', "'": "\'"})
-        file_name = f'{brewer} - {beer}{os.path.splitext(file_path)[1]}'.translate(
-            escaping)
+        file_name = f'{placard.name}{os.path.splitext(output_file.file_path)[1]}'.translate(escaping)
 
-        # Do chnage detection ASAP
-        remote_hash = folder.get_file_hash(file_name)
-        if remote_hash == md5_file_hash:
+        # Do change detection
+        local_hash = output_file.get_hash()
+        remote_hash = upload_folder.get_file_hash(file_name)
+        if remote_hash == local_hash:
             status.write(f'No change for {file_name}')
             return
         else:
@@ -204,11 +232,11 @@ class GCloud:
 
         # Find existing file (if any)
         file = self.__find_existing_item(
-            folder.id, file_name, folder.mime_type)
+            upload_folder.id, file_name, upload_folder.mime_type)
 
         # Upload file to this folder
-        media = MediaFileUpload(os.path.abspath(file_path),
-                                mimetype=folder.mime_type,
+        media = MediaFileUpload(os.path.abspath(output_file.file_path),
+                                mimetype=upload_folder.mime_type,
                                 resumable=True)
 
         if remote_hash is not None:
@@ -216,7 +244,7 @@ class GCloud:
             file_metadata = {
                 'name': file_name,
                 'properties': {
-                    'md5': md5_file_hash
+                    'md5': local_hash
                 }
             }
             self.__files.update(
@@ -229,9 +257,9 @@ class GCloud:
             status.write(f'Uploading {file_name}')
             file_metadata = {
                 'name': file_name,
-                'parents': [folder.id],
+                'parents': [upload_folder.id],
                 'properties': {
-                    'md5': md5_file_hash
+                    'md5': local_hash
                 }
             }
             self.__files.create(

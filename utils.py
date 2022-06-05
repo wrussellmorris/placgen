@@ -1,11 +1,14 @@
 import argparse
 import os.path
 import os
+import re
 
 from datetime import datetime
 from hashlib import md5
+from typing import Dict, List
 from PyPDF2 import PdfReader, PdfWriter
 from PyPDF2.generic import createStringObject, NameObject
+
 
 class Status:
     def __init__(self):
@@ -141,6 +144,7 @@ def syscmd(cmd):
     redirect = '' if args.debug else ' > /dev/null 2>&1'
     return os.system(f'{cmd} {redirect}')
 
+
 def make_hash_stable_pdf(pdf_path):
     # Get rid of dynamic ids
     pdf_path_cleansed = f'{pdf_path}.cleansed'
@@ -154,7 +158,8 @@ def make_hash_stable_pdf(pdf_path):
     reader = PdfReader(pdf_path_cleansed)
     writer = PdfWriter()
     for page_num in range(reader.getNumPages()):
-        infoDict = reader.flattened_pages[page_num].get_object()['/Resources']['/XObject']['/Im1']['/PTEX.InfoDict']
+        infoDict = reader.flattened_pages[page_num].get_object(
+        )['/Resources']['/XObject']['/Im1']['/PTEX.InfoDict']
         infoDict[NameObject('/Creator')] = createStringObject(blank)
         infoDict[NameObject('/CreationDate')] = createStringObject(blank_date)
         infoDict[NameObject('/ModDate')] = createStringObject(blank_date)
@@ -162,5 +167,44 @@ def make_hash_stable_pdf(pdf_path):
         writer.add_page(reader.flattened_pages[page_num])
     with open(pdf_path, 'wb') as output_stream:
         writer.write(output_stream)
-        
+
     os.remove(pdf_path_cleansed)
+
+
+class OutputFile:
+    def __init__(self, type, mime_type, file_path, hashes: Hashes):
+        self.type = type
+        self.mime_type = mime_type
+        self.file_path = file_path
+        self.__hashes: Hashes = hashes
+
+    def get_hash(self):
+        return self.__hashes.get_hash(self.file_path)
+
+
+class PreparedPlacard:
+    def __init__(self, name: str, placard_dir: str):
+        self.output_files: Dict[str, OutputFile] = {}
+        self.processed: bool = False
+        self.name = name
+        self.placard_dir = placard_dir
+
+
+class Site:
+    def __init__(self, name, prepared_dir):
+        self.name = name
+        self.site_dir = os.path.join(prepared_dir, self._safe_path(name))
+        self.prepared_placards: List[PreparedPlacard] = []
+
+    def prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
+        placard = self._do_prepare_placard(
+            brewer, beer, style, abv_str, logo_url)
+        if placard.processed:
+            self.prepared_placards.append(placard)
+        return placard
+
+    def _safe_path(self, path: str):
+        return re.sub('[^a-zA-Z0-9_-]', '_', path.lower())
+
+    def _do_prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
+        pass
