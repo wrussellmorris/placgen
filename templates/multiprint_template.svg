@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="8.5in"
-   height="11in"
-   viewBox="0 0 816 1056"
+   width="7.5in"
+   height="10in"
+   viewBox="0 0 720 960"
    version="1.1"
    id="SVGRoot"
    sodipodi:docname="multiprint_template.svg"
@@ -40,37 +40,37 @@
   <g
      inkscape:label="Placard 1"
      inkscape:groupmode="layer"
-     transform="translate(86.4 55.2)"
+     transform="translate(54.4 41.6)"
      id="placard1">
   </g>
   <g
      inkscape:label="Placard 2"
      inkscape:groupmode="layer"
-     transform="translate(451.2 55.2)"
+     transform="translate(387.2 41.6)"
      id="placard2">
   </g>
   <g
      inkscape:label="Placard 3"
      inkscape:groupmode="layer"
-     transform="translate(86.4 388.8)"
+     transform="translate(54.4 361.6)"
      id="placard3">
   </g>
   <g
      inkscape:label="Placard 4"
      inkscape:groupmode="layer"
-     transform="translate(451.2 388.8)"
+     transform="translate(387.2 361.6)"
      id="placard4">
   </g>
   <g
      inkscape:label="Placard 5"
      inkscape:groupmode="layer"
-     transform="translate(86.4 722.4)"
+     transform="translate(54.4 681.6)"
      id="placard5">
   </g>
   <g
      inkscape:label="Placard 6"
      inkscape:groupmode="layer"
-     transform="translate(451.2 722.4)"
+     transform="translate(387.2 681.6)"
      id="placard6">
   </g>
 </svg>

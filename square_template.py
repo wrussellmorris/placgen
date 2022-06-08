@@ -205,8 +205,8 @@ class SimpleTemplate(PreparedPlacard):
             raise Exception(
                 f'Failed to mv ./screenshot.png to {png_path}')
 
-        # Crop the PDF, as chrome saves with a bunch of extra whitespace.
-        if syscmd(f"pdfcrop {pdf_path} {pdf_path}") != 0:
+        # Crop the PDF and add a margin, as chrome saves with a bunch of extra whitespace.
+        if syscmd(f"pdfcrop -margin 24 {pdf_path} {pdf_path}") != 0:
             raise Exception(
                 f"Failed to crop {pdf_path}.  Do you have pdfcrop installed?")
 

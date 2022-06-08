@@ -88,15 +88,21 @@ def main():
     for row in gcloud.load_sheet(args.placard_sheet_id, args.placard_sheet_range, 5):
         (brewer, beer, style, abv_str, logo_url) = row
         if args.beer is not None and args.beer != beer:
+            beer_index += 1
             continue
 
         status.push(f'{brewer} - {beer}')
         for site in sites:
+            if args.site is not None and args.site != site.name:
+                continue
+
             status.push(site.name)
             prepared_placard = site.prepare_placard(
                 brewer, beer, style, abv_str, logo_url)
             # Add to multiprint, if necessary
+            status.write(f'{args.multiprint} {args.site} == {site.name} ({multiprint_selected[beer_index]} or {args.multiprint_all})')
             if args.multiprint and args.site == site.name and (multiprint_selected[beer_index] or args.multiprint_all):
+                status.write(f"multiprinting {beer}" )
                 multiprint_outputs.add(prepared_placard)
             status.pop()
 
