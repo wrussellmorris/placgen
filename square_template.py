@@ -86,7 +86,7 @@ class SimpleTemplate(PreparedPlacard):
                         'imgBoozy', 'rectRed', 'rectStripes', 'txtAbvBlur']
         elif 6 <= self.abv < 9:
             hideIds += ['imgNormal', 'imgStrongGray',
-                        'imgBoozy', 'rectRed', 'rectStripes', 'txtAbvBlur']
+                        'imgBoozy', 'rectRed', 'rectStripes']
         elif self.abv >= 9:
             hideIds += ['imgNormal', 'imgStrong', 'imgBoozyGray']
 
@@ -101,7 +101,7 @@ class SimpleTemplate(PreparedPlacard):
         abvLineStyle = self.__style_to_dict(abvLine.get('style'))
         abvLineInstr = self.__path_d_to_list(abvLine.get('d'))
 
-        if self.abv > 9:
+        if self.abv >= 6:
             # Change ABV text color
             txtAbv = root.find(".//*[@id='txtAbv']")
             txtAbvStyle = self.__style_to_dict(txtAbv.get('style'))
