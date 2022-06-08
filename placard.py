@@ -100,7 +100,6 @@ def main():
             prepared_placard = site.prepare_placard(
                 brewer, beer, style, abv_str, logo_url)
             # Add to multiprint, if necessary
-            status.write(f'{args.multiprint} {args.site} == {site.name} ({multiprint_selected[beer_index]} or {args.multiprint_all})')
             if args.multiprint and args.site == site.name and (multiprint_selected[beer_index] or args.multiprint_all):
                 status.write(f"multiprinting {beer}" )
                 multiprint_outputs.add(prepared_placard)
