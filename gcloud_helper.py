@@ -21,6 +21,8 @@ SCOPES = [
     'https://www.googleapis.com/auth/drive.file'
 ]
 
+PAGE_SIZE = 150
+
 parser = ArgumentParser()
 
 
@@ -130,7 +132,7 @@ class GCloud:
                     results = self.__files.list(
                         q=f"mimeType='{folder.mime_type}' and parents in '{folder.id}' and trashed=false",
                         spaces='drive',
-                        pageSize=10,
+                        pageSize=PAGE_SIZE,
                         includeItemsFromAllDrives=True,
                         supportsAllDrives=True,
                         fields="nextPageToken, files(id, name, properties)",
@@ -213,6 +215,7 @@ class GCloud:
                     pass
                 status.pop()
             status.pop()
+        status.pop()
 
     def _push_to_folder(self, upload_folder: _UploadFolder, placard: PreparedPlacard, output_file: OutputFile):
 
