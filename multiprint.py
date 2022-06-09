@@ -3,9 +3,10 @@ from audioop import mul
 import os.path
 import os
 from urllib.parse import urlencode
-import requests
+
 import defusedxml.ElementTree
 from utils import status, syscmd, ArgumentParser
+from typing import List
 
 
 def svg_to_pdf(svg_path, pdf_path):
@@ -38,13 +39,14 @@ def prepare_page(template_svg_path, output_svg_path, svg_paths):
     e.write(output_svg_path)
 
 
-def create_multiprint_pdf(svg_paths):
+def create_multiprint_pdf(svg_paths: List[str]):
     out_dir = os.path.join(os.curdir, 'prepared/multiprint')
     os.makedirs(out_dir, exist_ok=True)
     template_svg_path = os.path.join(os.curdir, 'templates/multiprint_template.svg')
     page_svg_paths = []
     page_pdf_paths = []
     svg_paths_list = list(svg_paths)
+    svg_paths_list.sort()
     i = 0
     status.push('Preparing Multiprint PDF')
     while i < len(svg_paths_list):
@@ -60,4 +62,4 @@ def create_multiprint_pdf(svg_paths):
     multiprint_pdf_path = os.path.join(out_dir, 'multiprint.pdf')
     syscmd(f'qpdf --empty --pages {" ".join(page_pdf_paths)} -- {multiprint_pdf_path}')
     for page_pdf in page_pdf_paths: os.remove(page_pdf)
-    return multiprint_pdf_path    
+    return multiprint_pdf_path
