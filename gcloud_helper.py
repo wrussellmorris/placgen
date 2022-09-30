@@ -17,8 +17,8 @@ from utils import OutputFile, PreparedPlacard, Site, status, ArgumentParser
 # If modifying these scopes, delete the file token.json.
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets.readonly',
-    'https://www.googleapis.com/auth/drive.metadata.readonly',
-    'https://www.googleapis.com/auth/drive.file'
+    # Need to make sure we can overwrite files other users upload.
+    'https://www.googleapis.com/auth/drive'
 ]
 
 PAGE_SIZE = 150
@@ -123,6 +123,7 @@ class GCloud:
         status.push("Loading remote hashes")
         # List files in each site's upload folders
         for site_folder in self.__site_folders.values():
+            status.push(f'Site: {site_folder.name}')
             for folder in site_folder.upload_folders.values():
                 names = set()
                 status.push(folder.name)
@@ -147,11 +148,14 @@ class GCloud:
                         names.add(remote.name)
                         status.write(remote.name)
                         folder.set_file_hash(remote.name, remote.hash)
+                    status.write(f'Loaded page #{page}')
                     page += 1
                     if nextPageToken is None:
+                        status.write(f'No more pages.  Loaded {len(names)} file hashes.')
                         break
                 status.pop()
             status.pop()
+        status.pop()
 
     def __get_or_create_folder_id(self, parent_folder_id, folder: Folder):
         if folder.id:
@@ -231,7 +235,7 @@ class GCloud:
             status.write(f'No change for {file_name}')
             return
         else:
-            status.write(f'Change detected for {file_name}')
+            status.write(f'Change detected for {file_name} - remote: {remote_hash} vs local: {local_hash}')
 
         # Find existing file (if any)
         file = self.__find_existing_item(
@@ -242,7 +246,7 @@ class GCloud:
                                 mimetype=upload_folder.mime_type,
                                 resumable=True)
 
-        if remote_hash is not None:
+        if file is not None:
             status.write(f'Updating {file_name}')
             file_metadata = {
                 'name': file_name,

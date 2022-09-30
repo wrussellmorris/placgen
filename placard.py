@@ -24,7 +24,7 @@ class GoldPan(Site):
         placard_dir = os.path.join(
             self.site_dir, self._safe_path(f'{brewer}_{beer}'))
         os.makedirs(placard_dir, exist_ok=True)
-        return square_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url)
+        return square_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url, 0.84)
 
 
 class CornerPocket(Site):
