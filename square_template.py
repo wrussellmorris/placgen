@@ -1,8 +1,10 @@
 import base64
+from genericpath import exists
 import os.path
 import os
 import re
 from urllib.parse import urlencode
+from xmlrpc.client import ResponseError
 import requests
 import defusedxml.ElementTree
 from utils import Hashes, PreparedPlacard, make_hash_stable_pdf, status, ArgumentParser, syscmd, OutputFile
@@ -160,10 +162,12 @@ class SimpleTemplate(PreparedPlacard):
         headers = {
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36'}
         with requests.get(self.logo_url, headers=headers) as response:
+            response.raise_for_status()
+
             contentType = response.headers['Content-Type']
             if contentType not in ContentTypes:
                 raise Exception(
-                    f'Unsupported Content-Type: {contentType} from {self.__image_url}')
+                    f'Unsupported Content-Type: {contentType} from {self.logo_url}')
             download_path = os.path.join(
                 self.placard_dir, f'downloaded.{ContentTypes[contentType]}')
             with open(download_path, 'wb+') as f:
@@ -217,9 +221,24 @@ class SimpleTemplate(PreparedPlacard):
         parser = ArgumentParser()
         args = parser.parse_args()
 
-        # Figure out which image file (if any) we are going to use
+        # Logo file (possible) locations
         custom_file = os.path.join(self.placard_dir, 'custom.png')
         downloaded_file = os.path.join(self.placard_dir, 'downloaded.png')
+
+        # Remember the logo_url specifically so that we can download
+        # it again when it changes.
+        self.__hashes.add_blob('logo_url', self.logo_url.encode('utf8'))
+
+        # If the logo_url changed, download it again
+        if self.__hashes.has_changes('logo_url'):
+            if len(self.logo_url) != 0:
+                # Download the new URL
+                self.__download_image_as_png()
+            elif os.exists(downloaded_file):
+                # No more URL - delete the download file
+                os.remove(downloaded_file)
+
+        # Figure out which image file (if any) we are going to use
         if os.path.isfile(custom_file):
             # Use custom.png if present
             self.__image_file = custom_file
@@ -235,7 +254,6 @@ class SimpleTemplate(PreparedPlacard):
             self.beer,
             self.style,
             str(self.abv),
-            self.logo_url,
             str(self.__scale)
         ]
         self.__hashes.add_blob('data', ','.join(data).encode('utf8'))

@@ -68,6 +68,7 @@ class Hashes:
         self.__blobs = {}
         self.__files = {}
         self.__loaded = {}
+        self.__is_loaded = False
 
     def add_blob(self, blob_name: str, hashable_data):
         self.__blobs[blob_name] = Hashes.HashedData(hashable_data)
@@ -79,18 +80,25 @@ class Hashes:
             self.__files[relpath] = Hashes.HashedFile(
                 os.path.dirname(self.__hash_file_path), relpath)
 
-    def has_changes(self) -> bool:
+    def has_changes(self, name: str = None) -> bool:
         self.__load()
         combined = self.__blobs | self.__files
 
-        if len(combined) != len(self.__loaded):
-            return True
-        for new in combined:
-            if new not in self.__loaded:
+        if name is None:
+            if len(combined) != len(self.__loaded):
                 return True
-            if combined[new].hash() != self.__loaded[new]:
+            for new in combined:
+                if new not in self.__loaded:
+                    return True
+                if combined[new].hash() != self.__loaded[new]:
+                    return True
+            return False
+        else:
+            if name not in self.__loaded:
+                return True;
+            if combined[name].hash() != self.__loaded[name]:
                 return True
-        return False
+            return False
 
     def save(self):
         combined = self.__blobs | self.__files
@@ -99,6 +107,10 @@ class Hashes:
                 file.write(f'{name}:{combined[name].hash()}\n')
 
     def __load(self):
+        if self.__is_loaded:
+            return
+        self.__is_loaded = True
+
         if not os.path.isfile(self.__hash_file_path):
             return
 
