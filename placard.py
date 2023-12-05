@@ -10,7 +10,7 @@ from multiprint import create_multiprint_pdf
 from utils import Hashes, make_hash_stable_pdf, status, ArgumentParser, syscmd, Site, PreparedPlacard
 
 __placard_spreadsheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
-__placard_spreadsheet_range = 'Placards!A2:E'
+__placard_spreadsheet_range = 'Placards!A2:H'
 __multiprint_sheet_id = '1jbha_NezYs8ONoTb29U4vIjH7LUzEJQauYeaf-Te93o'
 __multiprint_sheet_range = 'Multiprint!A2:A'
 __drive_root_folder_id = '1syThtSUpFmP6vQ_erMh3BDGztN4qPEhD'
@@ -20,22 +20,11 @@ class GoldPan(Site):
     def __init__(self, prepared_dir):
         super().__init__('Gold Pan', prepared_dir)
 
-    def _do_prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
+    def _do_prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str, brewery_font_size: str, beer_font_size: str, style_font_size: str) -> PreparedPlacard:
         placard_dir = os.path.join(
             self.site_dir, self._safe_path(f'{brewer}_{beer}'))
         os.makedirs(placard_dir, exist_ok=True)
-        return square_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url, 0.84)
-
-
-class CornerPocket(Site):
-    def __init__(self, prepared_dir):
-        super().__init__('Corner Pocket', prepared_dir)
-
-    def _do_prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
-        placard_dir = os.path.join(
-            self.site_dir, self._safe_path(f'{brewer}_{beer}'))
-        os.makedirs(placard_dir, exist_ok=True)
-        return square_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url, 0.84)
+        return square_template.prepare_template(placard_dir, brewer, beer, style, abv_str, logo_url, brewery_font_size, beer_font_size, style_font_size, 0.82)
 
 
 def main():
@@ -69,7 +58,7 @@ def main():
     prepared_dir = os.path.join(os.curdir, 'prepared')
     os.makedirs(prepared_dir, exist_ok=True)
 
-    all_sites = [GoldPan(prepared_dir), CornerPocket(prepared_dir)]
+    all_sites = [GoldPan(prepared_dir)]
     sites = list(
         filter(lambda site: args.site is None or args.site == site.name, all_sites))
 
@@ -85,8 +74,8 @@ def main():
     status.push("Preparing placards")
     beer_index = 0
 
-    for row in gcloud.load_sheet(args.placard_sheet_id, args.placard_sheet_range, 5):
-        (brewer, beer, style, abv_str, logo_url) = row
+    for row in gcloud.load_sheet(args.placard_sheet_id, args.placard_sheet_range, 8):
+        (brewer, beer, style, abv_str, logo_url, brewery_font_size, beer_font_size, style_font_size) = row
         if args.beer is not None and args.beer != beer:
             beer_index += 1
             continue
@@ -98,7 +87,7 @@ def main():
 
             status.push(site.name)
             prepared_placard = site.prepare_placard(
-                brewer, beer, style, abv_str, logo_url)
+                brewer, beer, style, abv_str, logo_url, brewery_font_size, beer_font_size, style_font_size)
             # Add to multiprint, if necessary
             if args.multiprint and args.site == site.name and (multiprint_selected[beer_index] or args.multiprint_all):
                 status.write(f"multiprinting {beer}" )

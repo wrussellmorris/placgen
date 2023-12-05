@@ -169,7 +169,7 @@ def make_hash_stable_pdf(pdf_path):
     blank_date = u"D:20220101000000+00'00'"
     reader = PdfReader(pdf_path_cleansed)
     writer = PdfWriter()
-    for page_num in range(reader.getNumPages()):
+    for page_num in range(len(reader.pages)):
         infoDict = reader.flattened_pages[page_num].get_object(
         )['/Resources']['/XObject']['/Im1']['/PTEX.InfoDict']
         infoDict[NameObject('/Creator')] = createStringObject(blank)
@@ -208,9 +208,9 @@ class Site:
         self.site_dir = os.path.join(prepared_dir, self._safe_path(name))
         self.prepared_placards: List[PreparedPlacard] = []
 
-    def prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str) -> PreparedPlacard:
+    def prepare_placard(self, brewer: str, beer: str, style: str, abv_str: str, logo_url: str, brewery_font_size: str, beer_font_size: str, style_font_size: str) -> PreparedPlacard:
         placard = self._do_prepare_placard(
-            brewer, beer, style, abv_str, logo_url)
+            brewer, beer, style, abv_str, logo_url, brewery_font_size, beer_font_size, style_font_size)
         self.prepared_placards.append(placard)
         return placard
 

@@ -12,15 +12,15 @@ from utils import Hashes, PreparedPlacard, make_hash_stable_pdf, status, Argumen
 template_svg_path = os.path.join(os.curdir, 'templates/square_template.svg')
 
 
-def prepare_template(placard_dir, brewer, beer, style, abv, logo_url, scale=1):
+def prepare_template(placard_dir, brewer, beer, style, abv, logo_url, brewery_font_size, beer_font_size, style_font_size,scale=1):
     template = SimpleTemplate(
-        placard_dir, brewer, beer, style, abv, logo_url, scale)
+        placard_dir, brewer, beer, style, abv, logo_url, brewery_font_size, beer_font_size, style_font_size, scale)
     return template
 
 
 class SimpleTemplate(PreparedPlacard):
 
-    def __init__(self, placard_dir, brewer, beer, style, abv, logo_url, scale):
+    def __init__(self, placard_dir, brewer, beer, style, abv, logo_url, brewery_font_size, beer_font_size, style_font_size, scale):
         super().__init__(f'{brewer} - {beer}', placard_dir)
         self.__hashes = Hashes(os.path.join(placard_dir, 'hashes.md5'))
         self.brewer = brewer
@@ -28,6 +28,9 @@ class SimpleTemplate(PreparedPlacard):
         self.style = style
         self.abv = float(abv)
         self.logo_url = logo_url
+        self.brewery_font_size = None if not brewery_font_size else brewery_font_size
+        self.beer_font_size = None if not beer_font_size else beer_font_size
+        self.style_font_size = None if not style_font_size else style_font_size
         self.__image_file = None
         stem = os.path.join(placard_dir, 'placard')
         self.output_files['SVG'] = OutputFile(
@@ -66,13 +69,23 @@ class SimpleTemplate(PreparedPlacard):
         with open(png_path, 'rb+') as f:
             return 'data:image/png;base64,' + str(base64.b64encode(f.read()), encoding='utf8')
 
+    def __set_text_and_size(self, root, node_xpath, text, text_size):
+        node = root.find(node_xpath)[0]
+        node.text = text
+        if text_size:
+            nodeStyle = self.__style_to_dict(node.get('style'))
+            nodeStyle['font-size'] = f"{text_size}px"
+            node.set('style', self.__dict_to_style(nodeStyle))
+
     def __transform_svg(self):
         # Load SVG template
         e = defusedxml.ElementTree.parse(template_svg_path)
         root = e.getroot()
-        root.find(".//*[@id='txtBrewer']")[0].text = self.brewer
-        root.find(".//*[@id='txtBeer']")[0].text = self.beer
-        root.find(".//*[@id='txtStyle']")[0].text = self.style
+
+        # Update text values and apply custom font sizing
+        self.__set_text_and_size(root, ".//*[@id='txtBrewer']", self.brewer, self.brewery_font_size)
+        self.__set_text_and_size(root, ".//*[@id='txtBeer']", self.beer, self.beer_font_size)
+        self.__set_text_and_size(root, ".//*[@id='txtStyle']", self.style, self.style_font_size)
         root.find(".//*[@id='txtAbv']")[0].text = f"{self.abv:.1f}"
         root.find(".//*[@id='txtAbvBlur']")[0].text = f"{self.abv:.1f}"
 
