@@ -86,8 +86,8 @@ class SimpleTemplate(PreparedPlacard):
         self.__set_text_and_size(root, ".//*[@id='txtBrewer']", self.brewer, self.brewery_font_size)
         self.__set_text_and_size(root, ".//*[@id='txtBeer']", self.beer, self.beer_font_size)
         self.__set_text_and_size(root, ".//*[@id='txtStyle']", self.style, self.style_font_size)
-        root.find(".//*[@id='txtAbv']")[0].text = f"{self.abv:.1f}"
-        root.find(".//*[@id='txtAbvBlur']")[0].text = f"{self.abv:.1f}"
+        self.__set_text_and_size(root, ".//*[@id='txtAbv']", f"{self.abv:.1f}", None)
+        self.__set_text_and_size(root, ".//*[@id='txtAbvBlur']", f"{self.abv:.1f}", None)
 
         # Update image if one is present
         if self.__image_file is not None:
@@ -267,7 +267,10 @@ class SimpleTemplate(PreparedPlacard):
             self.beer,
             self.style,
             str(self.abv),
-            str(self.__scale)
+            str(self.__scale),
+            str(self.brewery_font_size),
+            str(self.beer_font_size),
+            str(self.style_font_size)
         ]
         self.__hashes.add_blob('data', ','.join(data).encode('utf8'))
 
